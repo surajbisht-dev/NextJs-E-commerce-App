@@ -3,7 +3,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:3000/api";
+// Use ENV variable with fallback to /api
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 const ProductContext = createContext();
 
@@ -15,9 +16,9 @@ export const ProductProvider = ({ children }) => {
   // Fetch all products
   const fetchAllProducts = async () => {
     try {
-      const api = await axios.get(`${API_BASE_URL}/products`);
-      setProducts(api.data.products);
-      setData(api.data.products);
+      const res = await axios.get(`${API_BASE_URL}/products`);
+      setProducts(res.data.products);
+      setData(res.data.products);
     } catch (error) {
       console.error("fetchAllProducts error:", error);
     }
@@ -26,15 +27,15 @@ export const ProductProvider = ({ children }) => {
   // Add to cart
   const addToCart = async (title, imgSrc, price, toast) => {
     try {
-      const api = await axios.post(`${API_BASE_URL}/cart`, {
+      const res = await axios.post(`${API_BASE_URL}/cart`, {
         title,
         imgSrc,
         price,
       });
 
-      if (api.data.success) {
-        toast.success(api.data.message, { autoClose: 1500 });
-        fetchCartItems(); // refresh cart
+      if (res.data.success) {
+        toast.success(res.data.message, { autoClose: 1500 });
+        fetchCartItems();
       }
     } catch (err) {
       console.error("addToCart error:", err);
@@ -42,26 +43,30 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
-  // Fetch cart items from API
+  // Fetch cart items
   const fetchCartItems = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/cart`);
-      console.log("data", response.data.cartItems);
-
-      setCart(response.data.cartItems || []);
+      const res = await axios.get(`${API_BASE_URL}/cart`);
+      setCart(res.data.cartItems || []);
     } catch (error) {
       console.error("fetchCartItems error:", error);
     }
   };
 
+  // Clear cart
   const clearCart = async () => {
-    const api = await axios.delete(`${API_BASE_URL}/cart`);
-    if (api.data.success) {
-      setCart([]);
-      fetchCartItems();
+    try {
+      const res = await axios.delete(`${API_BASE_URL}/cart`);
+      if (res.data.success) {
+        setCart([]);
+        fetchCartItems();
+      }
+    } catch (error) {
+      console.error("clearCart error:", error);
     }
   };
 
+  // Initial load
   useEffect(() => {
     fetchAllProducts();
     fetchCartItems();
@@ -76,7 +81,6 @@ export const ProductProvider = ({ children }) => {
         setData,
         addToCart,
         fetchCartItems,
-        cart,
         clearCart,
       }}
     >
