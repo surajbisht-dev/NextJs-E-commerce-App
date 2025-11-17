@@ -1,0 +1,25 @@
+body{
+background-color: black;
+color: white;  
+/* overflow: hidden; */
+scrollbar-width: none;
+  -ms-overflow-style: none;
+
+}
+/* hide-scrollbar.css */
+
+/* Works in Chrome, Safari, Edge */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* Works in Firefox */
+* {
+  scrollbar-width: none;
+}
+
+/* Works in IE & old Edge */
+* {
+  -ms-overflow-style: none;
+}
