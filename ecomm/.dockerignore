@@ -6,7 +6,9 @@ npm-debug.log
 .next
 out
 
-# Development files
+# Environment files (NEVER send secrets to Docker image)
+.env
+.env.local
 .env*.local
 .env.development
 .env.test
@@ -26,7 +28,6 @@ coverage
 # Misc
 .DS_Store
 *.pem
-README.md
 .editorconfig
 
 # Debug

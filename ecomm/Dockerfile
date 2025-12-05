@@ -1,59 +1,43 @@
-# Multi-stage build for Next.js application
-
-# Stage 1: Dependencies
+# ---------- Dependencies Stage ----------
 FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Copy package files
 COPY package.json package-lock.json ./
-
-# Install dependencies
 RUN npm ci --only=production
 
-# Stage 2: Builder
+# ---------- Builder Stage ----------
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy package files
 COPY package.json package-lock.json ./
-
-# Install all dependencies (including dev dependencies)
 RUN npm ci
 
-# Copy all source files
 COPY . .
-
-# Build the Next.js application
 RUN npm run build
 
-# Stage 3: Runner
+# ---------- Runtime Stage ----------
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Set environment to production
 ENV NODE_ENV=production
+ENV PORT=5001
+ENV HOSTNAME=0.0.0.0
 
-# Create non-root user for security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs \
+    && adduser --system --uid 1001 nextjs
 
-# Copy necessary files from builder
+# Copy only required runtime files
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Change ownership to nextjs user
+# Fix permissions
 RUN chown -R nextjs:nodejs /app
-
-# Switch to non-root user
 USER nextjs
 
-# Expose port 5001
+# Expose app port
 EXPOSE 5001
 
-# Set environment variable for port
-ENV PORT=5001
-ENV HOSTNAME="0.0.0.0"
-
-# Start the application
+# Start Next.js standalone server
 CMD ["node", "server.js"]
